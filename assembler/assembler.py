@@ -68,12 +68,18 @@ def Disassembler(InputFile, OutputFile):
 			reg1 = line[1:sep].strip()
 			line = line[sep+1:len(line)].strip()
 			sep = line.find(',')
-			reg2 = line[1:sep].strip()
-			line = line[sep+1:len(line)].strip()
-			if line in labels:
-				imm = labels[line]
+			if cmd in ['sw', 'lw']:
+				leftbracket = line.find('(')
+				rightbracket = line.find(')')
+				reg2 = line[leftbracket+2:rightbracket].strip()
+				imm = int(line[0:leftbracket].strip(), base = 0)
 			else:
-				imm = int(line, base = 0)
+				reg2 = line[1:sep].strip()
+				line = line[sep+1:len(line)].strip()
+				if line in labels:
+					imm = labels[line]
+				else:
+					imm = int(line, base = 0)
 			if cmd in ['beq', 'bne']:
 				imm = (imm - PC - 4) >> 2;
 			result = BIN(IType[cmd], 6) + BIN(reg.index(reg2), 5) + BIN(reg.index(reg1), 5) + BIN(imm, 16)
