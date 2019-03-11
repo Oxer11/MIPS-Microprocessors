@@ -92,6 +92,9 @@ def Disassembler(InputFile, OutputFile):
 			else:
 				result += BIN(int(line, base = 0), 26)
 		
+		elif cmd == 'nop':
+			result = BIN(0, 32)
+
 		if result == '' and sys.argv[3] == '0': continue
 		if sys.argv[2] == 'hex' and result != '':
 			result = HEX(int(result, base = 2), 8)
@@ -107,7 +110,10 @@ def Disassembler(InputFile, OutputFile):
 for File in filter(lambda s: True if s.find('.in') != -1 else False, FileList):
 	print(File)
 	InputFile = open(File, 'r')
-	OutputFile = open(File[0:len(File)-3] + '.txt', 'w')
+	if sys.argv[3] == '1':
+		OutputFile = open(File[0:len(File)-3] + '.out', 'w')
+	else:
+		OutputFile = open(File[0:len(File)-3] + '.txt', 'w')
 	Disassembler(InputFile, OutputFile)
 	InputFile.close()
 	OutputFile.close()

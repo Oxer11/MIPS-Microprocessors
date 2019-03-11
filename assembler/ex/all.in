@@ -1,6 +1,5 @@
-addi $s0, $0, 4
-subi $s1, $s0, 3
-andi $s2, $s0, 7
+addi $s0, $0, 12
+andi $s2, $s0, -8
 ori $s3, $s1, 10
 slti $s4, $s2, 5
 nop
@@ -11,4 +10,3 @@ or $t0, $s1, $s2
 slt $t0, $s0, $s2
 sw $s0, 2($0)
 lw $t0, 2($0)
- 

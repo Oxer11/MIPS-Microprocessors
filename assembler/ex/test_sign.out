@@ -1,0 +1,3 @@
+ 0x0 : addi $s0, $0, 0xffff | 2010ffff
+ 0x4 : add $s0, $s0, $s0    | 02108020
+ 0x8 : andi $t0, $s0, 0xffff | 3208ffff
