@@ -1,4 +1,4 @@
-addi $s0, $0, 20
+addi $s0, $0, 100
 
 case20:
 	addi $t0, $0, 20
