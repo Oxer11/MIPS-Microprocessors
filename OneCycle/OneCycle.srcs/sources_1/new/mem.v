@@ -25,9 +25,16 @@ module Imem(a, instr);
     reg [7:0] RAM[255:0]; 
     initial
     begin
-{RAM[3], RAM[2], RAM[1], RAM[0]} <= 32'h2010ffff;
-    {RAM[7], RAM[6], RAM[5], RAM[4]} <= 32'h02108020;
-    {RAM[11], RAM[10], RAM[9], RAM[8]} <= 32'h3208ffff;
+{RAM[3], RAM[2], RAM[1], RAM[0]} <= 32'h20080063;
+    {RAM[7], RAM[6], RAM[5], RAM[4]} <= 32'h20090025;
+    {RAM[11], RAM[10], RAM[9], RAM[8]} <= 32'h20100000;
+    {RAM[15], RAM[14], RAM[13], RAM[12]} <= 32'h10090006;
+    {RAM[19], RAM[18], RAM[17], RAM[16]} <= 32'h312a0001;
+    {RAM[23], RAM[22], RAM[21], RAM[20]} <= 32'h100a0001;
+    {RAM[27], RAM[26], RAM[25], RAM[24]} <= 32'h02088020;
+    {RAM[31], RAM[30], RAM[29], RAM[28]} <= 32'h00084040;
+    {RAM[35], RAM[34], RAM[33], RAM[32]} <= 32'h00094842;
+    {RAM[39], RAM[38], RAM[37], RAM[36]} <= 32'h08000003;
     end
     assign instr = {RAM[a+3], RAM[a+2], RAM[a+1], RAM[a]};
 endmodule

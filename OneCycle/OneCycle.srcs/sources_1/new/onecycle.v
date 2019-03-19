@@ -41,20 +41,20 @@ module MIPS(CLK100MHZ, Reset, SW, DIGIT);
     output [7:0] SW;
     output [6:0] DIGIT;
     wire [4:0] addr3;
-    wire [31:0] instr, WD3, RD1, RD2, srcB, ALUResult, ReadData, SignImm, PC, PCJump, NewPC1, NewPC2, PCPlus4, SignImm_sl2, PCBranch;
+    wire [31:0] instr, WD3, RD1, RD2, srcA, srcB, ALUResult, ReadData, SignImm, PC, PCJump, NewPC1, NewPC2, PCPlus4, SignImm_sl2, PCBranch;
     wire zero, PCSrc;
     wire clk2, clk1, clk0;
-    
-    clkdiv U0(CLK100MHZ, clk2, clk1, clk0);
+    assign clk0 = CLK100MHZ;
+    //clkdiv U0(CLK100MHZ, clk2, clk1, clk0);
     
     //Display
-    wire [15:0] display;
-    Display digit(clk2, {PC[15:0], display}, SW, DIGIT);
+    //wire [15:0] display;
+    //Display digit(clk2, {PC[15:0], display}, SW, DIGIT);
     
     //Control Unit
-    wire [2:0] ALUControl;
-    wire MemtoReg, MemWrite, Branch0, Branch1, ALUSrc, RegDst, RegWrite, Jump, BIT; 
-    Controller controller(instr[31:26], instr[5:0], MemtoReg, MemWrite, Branch0, Branch1, ALUControl, ALUSrc, RegDst, RegWrite, Jump, BIT);
+    wire [3:0] ALUControl;
+    wire MemtoReg, MemWrite, Branch0, Branch1, ALUSrcA, ALUSrcB, RegDst, RegWrite, Jump, BIT; 
+    Controller controller(instr[31:26], instr[5:0], MemtoReg, MemWrite, Branch0, Branch1, ALUControl, ALUSrcA, ALUSrcB, RegDst, RegWrite, Jump, BIT);
     
     //left
     MUX2 #(32) newpc1(PCSrc, PCPlus4, PCBranch, NewPC1);
@@ -70,8 +70,9 @@ module MIPS(CLK100MHZ, Reset, SW, DIGIT);
     MUX2 #(5) regdst(RegDst, instr[20:16], instr[15:11], addr3);
     
     //right
-    MUX2 #(32) srcb(ALUSrc, RD2, SignImm, srcB);
-    ALU alu(ALUControl, RD1, srcB, ALUResult, zero);
+    MUX2 #(32) srca(ALUSrcA, RD1, {0, instr[10:6]}, srcA);
+    MUX2 #(32) srcb(ALUSrcB, RD2, SignImm, srcB);
+    ALU alu(ALUControl, srcA, srcB, ALUResult, zero);
     SL2 sl2(SignImm, SignImm_sl2);
     Adder pcbranch(SignImm_sl2, PCPlus4, PCBranch);
     assign PCSrc = (Branch0 & zero) | (Branch1 & ~zero);

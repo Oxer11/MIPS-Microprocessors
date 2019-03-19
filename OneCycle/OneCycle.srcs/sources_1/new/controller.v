@@ -19,22 +19,23 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module Controller(op, funct, MemtoReg, MemWrite, Branch0, Branch1, ALUControl, ALUSrc, RegDst, RegWrite, Jump, BIT);
+module Controller(op, funct, MemtoReg, MemWrite, Branch0, Branch1, ALUControl, ALUSrcA, ALUSrcB, RegDst, RegWrite, Jump, BIT);
     input [5:0] op, funct;
-    output MemtoReg, MemWrite, Branch0, Branch1, ALUSrc, RegDst, RegWrite, Jump, BIT;
-    output [2:0] ALUControl;
+    output MemtoReg, MemWrite, Branch0, Branch1, ALUSrcA, ALUSrcB, RegDst, RegWrite, Jump, BIT;
+    output [3:0] ALUControl;
     wire [2:0] aluop;
     wire branch;
-    maindec md(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrc, RegDst, RegWrite, Jump, aluop, BIT);
+    maindec md(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrcB, RegDst, RegWrite, Jump, aluop, BIT);
     aludec ad(funct, aluop, ALUControl);
+    assign ALUSrcA = (op == 6'b000000) & ((funct == 6'b000000) | (funct == 6'b000011) | (funct == 6'b000010));
 endmodule
 
-module maindec(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrc, RegDst, RegWrite, Jump, aluop, BIT);
+module maindec(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrcB, RegDst, RegWrite, Jump, aluop, BIT);
     input [5:0] op;
-    output MemtoReg, MemWrite, Branch0, Branch1, ALUSrc, RegDst, RegWrite, Jump, BIT;
+    output MemtoReg, MemWrite, Branch0, Branch1, ALUSrcB, RegDst, RegWrite, Jump, BIT;
     output [2:0] aluop;
     reg [11:0] controls;
-    assign {RegWrite, RegDst, ALUSrc, Branch0, Branch1, MemWrite, MemtoReg, Jump, aluop, BIT} = controls;
+    assign {RegWrite, RegDst, ALUSrcB, Branch0, Branch1, MemWrite, MemtoReg, Jump, aluop, BIT} = controls;
     always @(*)
       case (op)
         6'b000000: controls <= 12'b110000000100; // RTYPE
@@ -54,7 +55,7 @@ endmodule
 module aludec(funct, aluop, alucontrol);
     input [5:0] funct;
     input [2:0] aluop;
-    output reg [2:0] alucontrol;
+    output reg [3:0] alucontrol;
     always @(*)
         case (aluop)
             3'b000: alucontrol <= 3'b010; // add
@@ -63,12 +64,15 @@ module aludec(funct, aluop, alucontrol);
             3'b100: alucontrol <= 3'b001; // or
             3'b101: alucontrol <= 3'b111; // slt
             default: case(funct)
-                6'b100000: alucontrol <= 3'b010; // add
-                6'b100010: alucontrol <= 3'b110; // sub
-                6'b100100: alucontrol <= 3'b000; // and
-                6'b100101: alucontrol <= 3'b001; // or
-                6'b101010: alucontrol <= 3'b111; // slt
-                default: alucontrol <= 3'bxxx; // ???
+                6'b100000: alucontrol <= 4'b0010; // add
+                6'b100010: alucontrol <= 4'b0110; // sub
+                6'b100100: alucontrol <= 4'b0000; // and
+                6'b100101: alucontrol <= 4'b0001; // or
+                6'b101010: alucontrol <= 4'b0111; // slt
+                6'b000000: alucontrol <= 4'b0011; // sll
+                6'b000010: alucontrol <= 4'b1000; // srl
+                6'b000011: alucontrol <= 4'b1001; // sra
+                default: alucontrol <= 4'bxxxx; // ???
               endcase
         endcase
 endmodule

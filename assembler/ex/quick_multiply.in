@@ -1,5 +1,5 @@
-addi $t0, $0, 3
-addi $t1, $0, 4
+addi $t0, $0, 99
+addi $t1, $0, 37
 addi $s0, $0, 0
 
 while:

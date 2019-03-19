@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module ALU(ALUControl, A, B, ALUResult, zero);
-    input [2:0] ALUControl;
+    input [3:0] ALUControl;
     input [31:0] A, B;
     output reg [31:0] ALUResult;
     output zero;
@@ -29,10 +29,13 @@ module ALU(ALUControl, A, B, ALUResult, zero);
         0: ALUResult <= A & B;
         1: ALUResult <= A | B;
         2: ALUResult <= A + B;
+        3: ALUResult <= B << A;
         4: ALUResult <= A & ~B;
         5: ALUResult <= A | ~B;
         6: ALUResult <= A - B;
         7: ALUResult <= (A < B) ? 1 : 0;
+        8: ALUResult <= B >> A; 
+        9: ALUResult <= B >>> A;
         default: ALUResult <= 0; 
       endcase
     assign zero = (ALUResult == 0); 
