@@ -6,7 +6,7 @@ import sys
 
 reg = ['0', 'at', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra']
 RType = ['sll', 0, 'srl', 'sra', 'sllv', 0, 'srlv', 'srav', 'jr', 'jalr', 0, 0, 'syscall', 'break', 0, 0, 'mfhi', 'mthi', 'mflo', 'mtlo', 0, 0, 0, 0, 'mult', 'multu', 'div', 'divu', 0, 0, 0, 0, 'add', 'addu', 'sub', 'subu', 'and', 'or', 'xor', 'nor', 0, 0, 'slt', 'sltu']
-Shift = ['sll', 'srl']
+Shift = ['sll', 'srl', 'sra']
 IType = {'beq':4, 'bne':5, 'blez':6, 'bgtz':7, 'addi':8, 'addiu':9, 'slti':10, 'sltiu':11, 'andi':12, 'ori':13, 'xori':14, 'lui':15, 'mul':28, 'lb':32, 'lh':33, 'lw':35, 'lbu':36, 'lhu':37, 'sb':40, 'sh':41, 'sw':43, 'lwcl':49, 'swcl':56}
 JType = {'j':2, 'jal':3}
 
@@ -38,7 +38,7 @@ def Disassembler(InputFile, OutputFile):
 		cmd = line[0:sep].strip()
 		if (cmd in RType) or (cmd in IType) or (cmd in JType):
 			PC += 4
-		
+
 	print(labels)
 	
 	PC = 0	
@@ -52,15 +52,19 @@ def Disassembler(InputFile, OutputFile):
 			line = line[sep+1:len(line)].strip()
 			sep = line.find(',')
 			reg1 = line[1:sep].strip()
-			line = line[sep+1:len(line)].strip()
-			sep = line.find(',')
-			reg2 = line[1:sep].strip()
-			line = line[sep+1:len(line)].strip()
-			if cmd not in Shift:
-				reg3 = line[1:len(line)].strip()
-				result = '000000' + BIN(reg.index(reg2), 5) + BIN(reg.index(reg3), 5) + BIN(reg.index(reg1), 5) + '00000' + BIN(RType.index(cmd), 6)
+			if cmd == 'jr':
+				reg1 = line[1:len(line)].strip()
+				result = '000000' + BIN(reg.index(reg1), 5) + '000000000000000' + '001000'
 			else:
-				result = '000000' + '00000' + BIN(reg.index(reg2), 5) + BIN(reg.index(reg1), 5) + BIN(int(line.strip()), 5) + BIN(RType.index(cmd), 6)			
+				line = line[sep+1:len(line)].strip()
+				sep = line.find(',')
+				reg2 = line[1:sep].strip()
+				line = line[sep+1:len(line)].strip()
+				if cmd not in Shift:
+					reg3 = line[1:len(line)].strip()
+					result = '000000' + BIN(reg.index(reg2), 5) + BIN(reg.index(reg3), 5) + BIN(reg.index(reg1), 5) + '00000' + BIN(RType.index(cmd), 6)
+				else:
+					result = '000000' + '00000' + BIN(reg.index(reg2), 5) + BIN(reg.index(reg1), 5) + BIN(int(line.strip()), 5) + BIN(RType.index(cmd), 6)			
 		
 		elif cmd in IType:
 			line = line[sep+1:len(line)].strip()

@@ -19,15 +19,17 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module Controller(op, funct, MemtoReg, MemWrite, Branch0, Branch1, ALUControl, ALUSrcA, ALUSrcB, RegDst, RegWrite, Jump, BIT);
+module Controller(op, funct, MemtoReg, MemWrite, Branch0, Branch1, ALUControl, ALUSrcA, ALUSrcB, RegDst, RegWrite, JR, Jump, BIT, JAL);
     input [5:0] op, funct;
-    output MemtoReg, MemWrite, Branch0, Branch1, ALUSrcA, ALUSrcB, RegDst, RegWrite, Jump, BIT;
+    output MemtoReg, MemWrite, Branch0, Branch1, ALUSrcA, ALUSrcB, RegDst, RegWrite, JR, Jump, BIT, JAL;
     output [3:0] ALUControl;
     wire [2:0] aluop;
     wire branch;
     maindec md(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrcB, RegDst, RegWrite, Jump, aluop, BIT);
     aludec ad(funct, aluop, ALUControl);
     assign ALUSrcA = (op == 6'b000000) & ((funct == 6'b000000) | (funct == 6'b000011) | (funct == 6'b000010));
+    assign JR = (op == 6'b000000) & (funct == 6'b001000);
+    assign JAL = (op == 6'b000011);
 endmodule
 
 module maindec(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrcB, RegDst, RegWrite, Jump, aluop, BIT);
@@ -48,6 +50,7 @@ module maindec(op, MemtoReg, MemWrite, Branch0, Branch1, ALUSrcB, RegDst, RegWri
         6'b000010: controls <= 12'b00000001xxx0; // J
         6'b000100: controls <= 12'b000100000010; // BEQ
         6'b000101: controls <= 12'b000010000010; // BNE
+        6'b000011: controls <= 12'b10000001xxx0; // JAL
         default: controls <= 12'bxxxxxxxxxxxx; // illegal op
       endcase
 endmodule
