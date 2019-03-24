@@ -46,7 +46,8 @@ module MIPS(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
     wire zero, PCSrc;
     wire clk2, clk1, clk0, clk;
     clkdiv U0(CLK100MHZ, clk2, clk1, clk0);
-    assign clk = (sel == 1 ? clk1: clk0);
+    MUX2 #(1) selclk(sel, clk0, clk1, clk);
+    //assign clk = (sel == 0) ? clk0 : clk1;
     //Display
     wire [15:0] display;
     Display digit(clk2, {PC[15:0], display}, SW, DIGIT);
@@ -60,14 +61,14 @@ module MIPS(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
     MUX2 #(32) newpc1(PCSrc, PCPlus4, PCBranch, NewPC1);
     MUX2 #(32) newpc2(Jump, NewPC1, PCJump, NewPC2);
     MUX2 #(32) newpc3(JR, NewPC2, RD1, NewPC3);
-    flopr pc(clk1, Reset, NewPC3, PC);
+    flopr pc(clk, Reset, NewPC3, PC);
     Adder adder(PC, 4, PCPlus4);
     Imem imem(PC[7:0], instr);
     
     //middle
     MUX2 #(5) newAddr3(JAL, addr3, 5'b11111, newaddr3);
     MUX2 #(32) newwd3(JAL, WD3, PCPlus4, newWD3);
-    RegFile rf(clk1, Reset, instr[25:21], instr[20:16], newaddr3, newWD3, RegWrite, RD1, RD2, addr, display);
+    RegFile rf(clk, Reset, instr[25:21], instr[20:16], newaddr3, newWD3, RegWrite, RD1, RD2, addr, display);
     SignExtend signextend(instr[15:0], SignImm, BIT);
     SL2 pcjump({PCPlus4[31:28], instr[25:0]}, PCJump);
     MUX2 #(5) regdst(RegDst, instr[20:16], instr[15:11], addr3);
@@ -79,6 +80,6 @@ module MIPS(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
     SL2 sl2(SignImm, SignImm_sl2);
     Adder pcbranch(SignImm_sl2, PCPlus4, PCBranch);
     assign PCSrc = (Branch0 & zero) | (Branch1 & ~zero);
-    Dmem dmem(clk1, Reset, ALUResult[7:0], MemWrite, RD2, ReadData);
+    Dmem dmem(clk, Reset, ALUResult[7:0], MemWrite, RD2, ReadData);
     MUX2 #(32) wd3(MemtoReg, ALUResult, ReadData, WD3);
 endmodule

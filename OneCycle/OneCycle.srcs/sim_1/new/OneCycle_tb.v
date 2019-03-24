@@ -21,11 +21,11 @@
 
 
 module OneCycle_tb();
-    reg clock, reset;
+    reg clock, reset, sel;
     //wire [31:0] instr, PC;
     wire [7:0] SW;
     wire [6:0] DIGIT;
-    MIPS MUT(clock, reset, SW, DIGIT);
+    MIPS MUT(clock, reset, 1, SW, DIGIT);
     initial 
     begin
         reset = 1;

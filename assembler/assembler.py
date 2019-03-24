@@ -35,8 +35,11 @@ def Disassembler(InputFile, OutputFile):
 		if sep != -1: 
 			labels[line[0:sep].strip()] = PC
 		sep = line.find(' ')
-		cmd = line[0:sep].strip()
-		if (cmd in RType) or (cmd in IType) or (cmd in JType):
+		if sep != -1:
+			cmd = line[0:sep].strip()
+		else:
+			cmd = line.strip()
+		if (cmd in RType) or (cmd in IType) or (cmd in JType) or (cmd == 'nop'):
 			PC += 4
 
 	print(labels)
@@ -108,7 +111,7 @@ def Disassembler(InputFile, OutputFile):
 			result = '{RAM[%d], RAM[%d], RAM[%d], RAM[%d]} <= 32\'h'%(PC+3, PC+2, PC+1, PC) + result + ';'
 		print(result)
 		OutputFile.write(result+'\n')
-		if (cmd in RType) or (cmd in IType) or (cmd in JType):
+		if (cmd in RType) or (cmd in IType) or (cmd in JType) or (cmd == 'nop'):
 			PC += 4
 
 for File in filter(lambda s: True if s.find('.in') != -1 else False, FileList):
