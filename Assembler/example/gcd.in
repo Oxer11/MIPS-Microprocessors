@@ -1,0 +1,14 @@
+addi $v0,$0,189
+addi $v1,$0,287
+main:
+beq $v0,$v1,end
+slt $v0,$v1,$at
+beq $at,$0,run
+add $at,$v0,$0
+add $v0,$v1,$0
+add $v1,$at,$0
+run:
+sub $v0,$v0,$v1
+j main
+end:
+nop
