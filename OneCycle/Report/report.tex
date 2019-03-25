@@ -33,7 +33,7 @@
 \usepackage{array} % for better arrays (eg matrices) in maths
 \usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
 \usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
-\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+%\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
 % These packages are all incorporated in the memoir class to one degree or another...
 
 %%% HEADERS & FOOTERS
@@ -63,6 +63,7 @@
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{fontspec}
 \usepackage[CJKbookmarks=true,colorlinks,linkcolor=black]{hyperref}
+\usepackage{subfigure}
 
 %\setCJKmainfont{SimSun}
 %\setCJKmonofont{SimSun}
@@ -478,14 +479,28 @@ always @(*)
  0x8 : ori $s3, $s1, 10     | 3633000a
  0xc : slti $s4, $s2, 5     | 2a540005
 0x10 : nop                  | 00000000
-0x10 : add $t0, $s0, $s1    | 02114020
-0x14 : sub $t0, $s2, $s3    | 02534022
-0x18 : and $t0, $s3, $s1    | 02714024
-0x1c : or $t0, $s1, $s2     | 02324025
-0x20 : slt $t0, $s0, $s2    | 0212402a
-0x24 : sw $s0, 2($0)        | ac100002
-0x28 : lw $t0, 2($0)        | 8c080002
+0x14 : add $t0, $s0, $s1    | 02114020
+0x18 : sub $t0, $s2, $s3    | 02534022
+0x1c : and $t0, $s3, $s1    | 02714024
+0x20 : or $t0, $s1, $s2     | 02324025
+0x24 : slt $t0, $s0, $s2    | 0212402a
+0x28 : sw $s0, 2($0)        | ac100002
+0x2c : lw $t0, 2($0)        | 8c080002
 \end{lstlisting}  
+
+\begin{figure}[htbp]
+\centering
+\subfigure{
+\includegraphics[width = \linewidth]{figure/all1.png}
+}
+
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/all2.png}
+}
+\caption{测试样例all}
+\end{figure}
+
+第一个测试样例中包含了许多基本的R型和I型的运算指令。上图中依次给出了寄存器\$t0, \$s4, \$s3, \$s2, \$s1, \$s0的仿真结果，最后是内存地址为2的位置的值。经过检验，所有的结果都是正确的。
 
 \subsection{位运算测试test\_sign.in}
 
@@ -494,6 +509,14 @@ always @(*)
  0x4 : add $s0, $s0, $s0    | 02108020
  0x8 : andi $t0, $s0, 0xffff | 3208ffff
 \end{lstlisting}  
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width =0.9 \linewidth]{figure/testsign.png}
+\caption{测试样例test\_sign}
+\end{figure}
+
+第二个测试样例主要用于测试立即数在作位运算时是否进行{\bf 零扩展}。注意到，最开始执行addi操作时，对立即数进行了{\bf 符号扩展}，得到寄存器\$s0的值为-1。而在之后将\$s0与立即数0xffff进行andi操作时，对0xffff进行了{\bf 零扩展}，故结果的高位为0。
 
 \subsection{条件跳转condition\_beq.in}
 
@@ -509,53 +532,20 @@ always @(*)
 0x18 : add $s1, $s1, $s0    | 02308820
 \end{lstlisting}  
 
-\subsection{switch语句switch.in}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width =0.9 \linewidth]{figure/condition.png}
+\caption{测试样例condition}
+\end{figure}
 
-\begin{lstlisting}[]  
- 0x0 : addi $s0, $0, 100    | 20100064
- 0x4 :                      | 
- 0x4 : case20:              | 
- 0x4 : addi $t0, $0, 20     | 20080014
- 0x8 : bne $s0, $t0, case50 | 15100002
- 0xc : addi $s1, $0, 2      | 20110002
-0x10 : j done               | 0800000e
-0x14 : case50:              | 
-0x14 : addi $t0, $0, 50     | 20080032
-0x18 : bne $s0, $t0, case100 | 15100002
-0x1c : addi $s1, $0, 3      | 20110003
-0x20 : j done               | 0800000e
-0x24 : case100:             | 
-0x24 : addi $t0, $0, 100    | 20080064
-0x28 : bne $s0, $t0, default | 15100002
-0x2c : addi $s1, $0, 5      | 20110005
-0x30 : j done               | 0800000e
-0x34 : default:             | 
-0x34 : add $s1, $0, $0      | 00008820
-0x38 :                      | 
-0x38 : done:                | 
-\end{lstlisting}  
-
-\subsection{while循环while\_loop.in}
-
-\begin{lstlisting}[]  
- 0x0 : addi $s0, $0, 1      | 20100001
- 0x4 : addi $s1, $0, 0      | 20110000
- 0x8 :                      | 
- 0x8 : addi $t0, $0, 128    | 20080080
- 0xc : while:               | 
- 0xc : beq $s0, $t0, done   | 11100003
-0x10 : add $s0, $s0, $s0    | 02108020
-0x14 : addi $s1, $s1, 1     | 22310001
-0x18 : j while              | 08000003
-0x1c : done:                | 
-\end{lstlisting}  
+第三个测试样例主要用于测试条件跳转指令beq，只需注意到PC的值从0xc跳到了0x18，说明发生了跳转。因此，beq指令的测试通过。
 
 \subsection{for循环for\_loop.in}
 
 \begin{lstlisting}[]   
  0x0 : add $s1, $0, $0      | 00008820
  0x4 : addi $s0, $0, 0      | 20100000
- 0x8 : addi $t0, $0, 10     | 2008000a
+ 0x8 : addi $t0, $0, 5      | 20080005
  0xc :                      | 
  0xc : for:                 | 
  0xc : beq $s0, $t0, done   | 11100003
@@ -566,11 +556,29 @@ always @(*)
 0x1c : done:                | 
 \end{lstlisting}  
 
+\begin{figure}[htbp]
+\centering
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/for1.png}
+}
+
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/for2.png}
+}
+
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/for3.png}
+}
+\caption{测试样例for}
+\end{figure}
+
+第四个样例是无跳转指令j的测试，也是一个简单的累加器，使用for循环计算1到4的和。注意到，PC的值一直在0xc到0x18之间循环，说明for循环正确执行。最后当\$s0等于5时，结束循环，结果为0xa存储于寄存器\$s1中。
+
 \subsection{{\color{red} 快速乘法quick\_multiply.in}}
 
 \begin{lstlisting}[]  
  0x0 : addi $t0, $0, 99     | 20080063
- 0x4 : addi $t1, $0, 37     | 20090025
+ 0x4 : addi $t1, $0, 5      | 20090005
  0x8 : addi $s0, $0, 0      | 20100000
  0xc :                      | 
  0xc : while:               | 
@@ -585,6 +593,24 @@ always @(*)
 0x28 :                      | 
 0x28 : done:                | 
 \end{lstlisting}  
+
+\begin{figure}[htbp]
+\centering
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/multiply1.png}
+}
+
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/multiply2.png}
+}
+
+\subfigure{
+\includegraphics[width =0.9 \linewidth]{figure/multiply3.png}
+}
+\caption{测试样例multiply}
+\end{figure}
+
+为了弥补单周期无法实现乘法的遗憾，第五个样例实现了乘法的功能。避免繁杂的累加，这里使用了与快速幂算法相似的快速乘法。99*5的计算结果存储于寄存器\$s0中，为0x1ef。
 
 \subsection{{\color{red} 递归测试factorial.in}}
 
@@ -614,22 +640,79 @@ always @(*)
 0x4c : jr $ra               | 03e00008
 \end{lstlisting}  
 
-\newpage
+第六个样例是一个递归的累加器，用于测试与栈相关的调用函数的jr和jal指令。这个样例课堂上已进行过演示，且仿真结果较长，所以就不放了。只需注意，PC值先是在0x10到0x38间循环(跳过0x28到0x30段)，同时用于传参的寄存器\$ra每次都减一，直到\$ra等于零时，开始向回跳转，PC值在0x3c到0x4c间循环，同时存储结果的寄存器\$v0不停累加。因此，递归函数可以正确执行。
+
+%\newpage
 \section{讨论}
 
 \subsection{显示寄存器选择}
 
+为了显示的便捷性，我们在寄存器文件RegFile模块中加入了两个接口，专门用于传入显示地址和读出寄存器值。其中因为寄存器个数只有32个，显示地址可通过5个开关来控制。
+
 \subsection{时钟频率调节}
+
+将时钟频率设置为可调节的，首先要写一个时钟分频模块。
+
+\begin{lstlisting}[language=Verilog]   
+module clkdiv(
+    input mclk,
+   // input clr,
+    output clk190,
+    output clk48,
+    output clk1_4hz
+    );
+    reg [27:0]q;
+    initial
+        q <= 0;
+    always@(posedge mclk)
+         q<=q+1;
+    assign clk190=q[16];//0.005s
+    assign clk48=q[24];//0.02s
+    assign clk1_4hz=q[26];//0.33s      
+endmodule
+\end{lstlisting}  
+
+该模块的原理十分简单，用一个计数器，当计数器曾加2的整数次方倍时，令时钟发生变化。可以将原来的时钟频率放慢2的整数次方倍。
+
+时钟频率调节可以通过二路选择来实现，其中选择段为开关输入。
+
+\begin{lstlisting}[language=Verilog]   
+MUX2 #(1) selclk(sel, clk0, clk1, clk);
+\end{lstlisting}  
+
+要注意，这里不能用assign语句实现，不然显示时会出现奇怪的错误，只显示四个数字。具体原因我还没有搞明白...
 
 \subsection{显示模块Display}
 
+显示模块的原理要麻烦些，不过上个学期的数逻实验课上做过，所以写起来也不是很费事。
+
+首先，我们需要实现一个二进制数转七段码的电路，因为这里的二进制数是以4位传入的，所以我们可以直接使用十六进制进行显示。
+
+然后，我们需要“同时”显示八种数字。这里的“同时”之所以带了引号，是因为电路中每个时刻只能显示一种数字，所以在实现的时候并不是真正的同时，只是在人眼看上去是同时罢了。因为人眼有视觉残留，所以当显示的频率足够高时，人眼是看不出变化的。
+
+我们先通过时钟分频，选出一个合适的频率，作为显示模块的时钟。设置一个计数器表示当前选择输出的是4位中的哪一位，这个计数器从0到7每次自增1，到达7之后就变回0。接下来只要让7段码根据当前是4个数位中的哪一位选择输出即可，套用之前实验中的七段码代码来显示。
+
 \section{注意事项}
+
+\subsection{代码书写}
 
 \begin{enumerate}
 \item Run Implementation前必须先写好xdc文件，并且顶层模块要有输出口。
 \item always模块中只能对reg类型的变量赋值。
+\end{enumerate}
+
+\subsection{模块连接}
+
+\begin{enumerate}
 \item 读逻辑要写成组合逻辑，否则写入时不能同步内存中的值。
 \end{enumerate}
 
+\subsection{显示模块}
+
+\begin{enumerate}
+\item 显示时，要注意调控时钟频率。之前数逻课实验时只需显示4个数字，而现在需要显示8个数字，所以时钟频率也要相应的变快。
+\end{enumerate}
+
+{\color{red} 本实验的所有源代码均可通过https://github.com/Oxer11/MIPS访问。}
 \end{sloppypar}
 \end{document}

@@ -2,7 +2,7 @@ addi $v0,$0,189
 addi $v1,$0,287
 main:
 beq $v0,$v1,end
-slt $v0,$v1,$at
+slt $at,$v0,$v1
 beq $at,$0,run
 add $at,$v0,$0
 add $v0,$v1,$0
