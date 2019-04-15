@@ -49,8 +49,8 @@ module MultiCycle(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
     wire [15:0] display;
     Display digit(clk2, {PC[15:0], display}, SW, DIGIT);
     
-    wire IorD, MemWrite, IRWrite, ALUSrcA, RegWrite, PCEn, BIT, RegDst, MemtoReg, zero;
-    wire [1:0] ALUSrcB, PCSrc;
+    wire IorD, MemWrite, ALUSrcA, IRWrite, RegWrite, PCEn, BIT, zero;
+    wire [1:0] ALUSrcB, PCSrc, RegDst, MemtoReg;
     wire [3:0] ALUControl;
     Controller controller(clk, Reset, Instr[31:26], Instr[5:0], zero, IorD, MemWrite, IRWrite, RegDst, MemtoReg, PCSrc, ALUControl, ALUSrcB, ALUSrcA, RegWrite, BIT, PCEn);
     
@@ -61,10 +61,10 @@ module MultiCycle(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
     MUX2 #(32) ADDR(IorD, PC, ALUOut, Adr);
     Mem mem(clk, Reset, MemWrite, Adr[7:0], B, RD);
     flopr instr(clk, Reset, IRWrite, RD, Instr);
-    flopr data(clk, Reset, 1'b1, RD, DATA);
+    flopr data(clk, Reset, 1'b1, RD, Data);
     
-    MUX2 #(5) a3(RegDst, Instr[20:16], Instr[15:11], A3);
-    MUX2 #(32) wd3(MemtoReg, ALUOut, Data, WD3);
+    MUX4 #(5) a3(RegDst, Instr[20:16], Instr[15:11], 31, 0, A3);
+    MUX4 #(32) wd3(MemtoReg, ALUOut, Data, PC, 0, WD3);
     RegFile rf(clk, Reset, Instr[25:21], Instr[20:16], A3, WD3, RegWrite, RD1, RD2, addr, display);
     flopr floprA(clk, Reset, 1'b1, RD1, A);
     flopr floprB(clk, Reset, 1'b1, RD2, B);
@@ -73,9 +73,9 @@ module MultiCycle(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
     SL2 Immsl2(ImmExt, ImmExtSL2);
     MUX2 #(32) alusrcA(ALUSrcA, PC, A, SrcA);
     MUX4 #(32) aluscrB(ALUSrcB, B, 4, ImmExt, ImmExtSL2, SrcB);
-    ALU alu(ALUControl, SrcA, SrcB, ALUResult, zero);
+    ALU alu(ALUControl, SrcA, SrcB, Instr[10:6], ALUResult, zero);
     
     flopr floprALUResult(clk, Reset, 1'b1, ALUResult, ALUOut);
     SL2 Jumpsl2({PC[31:28], Instr[25:0]}, PCJump);
-    MUX4 #(32) newpc(PCSrc, ALUResult, ALUOut, PCJump, 0, newPC);
+    MUX4 #(32) newpc(PCSrc, ALUResult, ALUOut, PCJump, A, newPC);
 endmodule

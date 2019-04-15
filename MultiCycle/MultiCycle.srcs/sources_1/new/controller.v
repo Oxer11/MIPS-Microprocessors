@@ -23,21 +23,22 @@
 module Controller(clk, Reset, op, funct, Zero, IorD, MemWrite, IRWrite, RegDst, MemtoReg, PCSrc, ALUControl, ALUSrcB, ALUSrcA, RegWrite, BIT, PCEn);
     input clk, Reset, Zero;
     input [5:0] op, funct;
-    output IorD, MemWrite, IRWrite, ALUSrcA, RegWrite, PCEn, BIT, RegDst, MemtoReg;
-    output [1:0] ALUSrcB, PCSrc;
+    output IorD, MemWrite, ALUSrcA, IRWrite, RegWrite, PCEn, BIT;
+    output [1:0] ALUSrcB, PCSrc, RegDst, MemtoReg;
     output [3:0] ALUControl;
     wire [2:0] aluop;
-    wire PCWrite, Branch;
-    maindec md(clk, Reset, op, IorD, MemWrite, IRWrite, RegDst, MemtoReg, PCWrite, Branch, PCSrc, aluop, ALUSrcB, ALUSrcA, RegWrite, BIT);
+    wire PCWrite, Branch, BranchBNE, isJR;
+    maindec md(clk, Reset, op, isJR, IorD, MemWrite, IRWrite, RegDst, MemtoReg, PCWrite, Branch, BranchBNE, PCSrc, aluop, ALUSrcB, ALUSrcA, RegWrite, BIT);
     aludec ad(funct, aluop, ALUControl);
-    assign PCEn= (Branch & Zero) | PCWrite;
+    assign isJR = (op == 6'b000000) & (funct == 6'b001000);
+    assign PCEn = (Branch & Zero) | (BranchBNE & ~Zero)| PCWrite;
 endmodule
 
-module maindec(clk, Reset, op, IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrite, branch, PCSrc, aluop, ALUSrcB, ALUSrcA, RegWrite, BIT);
-    input clk, Reset;
+module maindec(clk, Reset, op, isJR, IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrite, branch, branchBNE, PCSrc, aluop, ALUSrcB, ALUSrcA, RegWrite, BIT);
+    input clk, Reset, isJR;
     input [5:0] op;
-    output IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrite, branch, ALUSrcA, RegWrite, BIT;
-    output [1:0] ALUSrcB, PCSrc;
+    output IorD, memwrite, IRWrite, ALUSrcA, PCWrite, branch, branchBNE, RegWrite, BIT;
+    output [1:0] ALUSrcB, PCSrc, RegDst, MemtoReg;
     output [2:0] aluop;
     
     parameter Fetch = 0;
@@ -52,15 +53,26 @@ module maindec(clk, Reset, op, IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrit
     parameter ADDIExecute = 9;
     parameter ADDIWriteback = 10;
     parameter Jump = 11;
+    parameter BranchBNE = 12;
+    parameter ANDIExecute = 13;
+    parameter ORIExecute = 14;
+    parameter SLTIExecute = 15;
+    parameter JRExecute = 16;
+    parameter JALExecute = 17;
     
     parameter LW = 6'b100011;
     parameter SW = 6'b101011;
     parameter RTYPE = 6'b000000;
     parameter BEQ = 6'b000100;
+    parameter BNE = 6'b000101;
     parameter ADDI = 6'b001000;
+    parameter ANDI = 6'b001100;
+    parameter ORI = 6'b001101;
+    parameter SLTI = 6'b001010;
     parameter J = 6'b000010;
+    parameter JAL = 6'b000011;
     
-    reg [3:0] state, nextstate;
+    reg [4:0] state, nextstate;
     always @(posedge clk or posedge Reset)
         if (Reset) state <= 0;
         else state <= nextstate;
@@ -70,16 +82,23 @@ module maindec(clk, Reset, op, IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrit
         Decode: case (op)
                   LW: nextstate = MemAdr;
                   SW: nextstate = MemAdr;
-                  RTYPE: nextstate = Execute;
+                  RTYPE: 
+                    if (isJR) nextstate = JRExecute;
+                    else nextstate = Execute;
                   BEQ: nextstate = Branch;
                   ADDI: nextstate = ADDIExecute;
+                  ANDI: nextstate = ANDIExecute;
+                  ORI: nextstate = ORIExecute;
+                  SLTI: nextstate = SLTIExecute;
                   J: nextstate = Jump;
-                  default: nextstate = 4'bx;
+                  BNE: nextstate = BranchBNE;
+                  JAL: nextstate = JALExecute;
+                  default: nextstate = 5'bx;
                 endcase
         MemAdr: case (op)
                   LW: nextstate = MemRead;
                   SW: nextstate = MemWrite;
-                  default: nextstate = 4'bx;
+                  default: nextstate = 5'bx;
                 endcase
         MemRead: nextstate = MemWriteback;
         MemWriteback: nextstate = Fetch;
@@ -90,26 +109,38 @@ module maindec(clk, Reset, op, IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrit
         ADDIExecute: nextstate = ADDIWriteback;
         ADDIWriteback: nextstate = Fetch;
         Jump: nextstate = Fetch;
-        default: nextstate = 4'bx;
+        BranchBNE: nextstate = Fetch;
+        ANDIExecute: nextstate = ADDIWriteback;
+        ORIExecute: nextstate = ADDIWriteback;
+        SLTIExecute: nextstate = ADDIWriteback;
+        JRExecute: nextstate = Fetch;
+        JALExecute: nextstate = Jump;
+        default: nextstate = 5'bx;
       endcase
       
-    reg [16:0] controls;
-    assign {IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrite, branch, ALUSrcA, RegWrite, BIT, ALUSrcB, PCSrc, aluop} = controls;   
+    reg [19:0] controls;
+    assign {IorD, memwrite, IRWrite, RegDst, MemtoReg, PCWrite, branch, branchBNE, ALUSrcA, RegWrite, BIT, ALUSrcB, PCSrc, aluop} = controls;   
     always @(*)
       case (state)
-        Fetch        : controls <= 17'b00100100000100000;
-        Decode       : controls <= 17'b00000000001100000;
-        MemAdr       : controls <= 17'b00000001001000000;
-        MemRead      : controls <= 17'b10000000000000000;
-        MemWriteback : controls <= 17'b00001000100000000;
-        MemWrite     : controls <= 17'b11000000000000000;
-        Execute      : controls <= 17'b00000001000000010;
-        ALUWriteback : controls <= 17'b00010000100000000;
-        Branch       : controls <= 17'b00000011000001001;
-        ADDIExecute  : controls <= 17'b00000001001000000;
-        ADDIWriteback: controls <= 17'b00000000100000000;
-        Jump         : controls <= 17'b00000100000010000;
-        default: controls <= 17'bxxxxxxxxxxxxxxxxx;
+        Fetch        : controls <= 20'b00100001000000100000;
+        Decode       : controls <= 20'b00000000000001100000;
+        MemAdr       : controls <= 20'b00000000001001000000;
+        MemRead      : controls <= 20'b10000000000000000000;
+        MemWriteback : controls <= 20'b00000010000100000000;
+        MemWrite     : controls <= 20'b11000000000000000000;
+        Execute      : controls <= 20'b00000000001000000010;
+        ALUWriteback : controls <= 20'b00001000000100000000;
+        Branch       : controls <= 20'b00000000101000001001;
+        ADDIExecute  : controls <= 20'b00000000001001000000;
+        ADDIWriteback: controls <= 20'b00000000000100000000;
+        Jump         : controls <= 20'b00000001000000010000;
+        BranchBNE    : controls <= 20'b00000000011000001001;
+        ANDIExecute  : controls <= 20'b00000000001001000011;
+        ORIExecute   : controls <= 20'b00000000001001000100;
+        SLTIExecute  : controls <= 20'b00000000001001000101;
+        JRExecute    : controls <= 20'b00000001000000011000;
+        JALExecute   : controls <= 20'b00010100000100000000;
+        default: controls <= 20'bx;
       endcase
 endmodule
 

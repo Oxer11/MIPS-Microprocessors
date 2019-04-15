@@ -30,18 +30,26 @@ module Mem(clk, Reset, wen, addr, wdata, rdata);
     //RAM´Ó0~99´æinstr£¬100~255´ædata
     initial
     begin
-{RAM[3], RAM[2], RAM[1], RAM[0]} <= 32'h2010000c;
-    {RAM[7], RAM[6], RAM[5], RAM[4]} <= 32'h3212fff8;
-    {RAM[11], RAM[10], RAM[9], RAM[8]} <= 32'h3633000a;
-    {RAM[15], RAM[14], RAM[13], RAM[12]} <= 32'h2a540005;
-    {RAM[19], RAM[18], RAM[17], RAM[16]} <= 32'h00000000;
-    {RAM[23], RAM[22], RAM[21], RAM[20]} <= 32'h02114020;
-    {RAM[27], RAM[26], RAM[25], RAM[24]} <= 32'h02534022;
-    {RAM[31], RAM[30], RAM[29], RAM[28]} <= 32'h02714024;
-    {RAM[35], RAM[34], RAM[33], RAM[32]} <= 32'h02324025;
-    {RAM[39], RAM[38], RAM[37], RAM[36]} <= 32'h0212402a;
-    {RAM[43], RAM[42], RAM[41], RAM[40]} <= 32'hac100064;
-    {RAM[47], RAM[46], RAM[45], RAM[44]} <= 32'h8c080064;
+{RAM[3], RAM[2], RAM[1], RAM[0]} <= 32'h201d0080;
+    {RAM[7], RAM[6], RAM[5], RAM[4]} <= 32'h20040005;
+    {RAM[11], RAM[10], RAM[9], RAM[8]} <= 32'h0c000004;
+    {RAM[15], RAM[14], RAM[13], RAM[12]} <= 32'h00021040;
+    {RAM[19], RAM[18], RAM[17], RAM[16]} <= 32'h23bdfff8;
+    {RAM[23], RAM[22], RAM[21], RAM[20]} <= 32'hafa40004;
+    {RAM[27], RAM[26], RAM[25], RAM[24]} <= 32'hafbf0000;
+    {RAM[31], RAM[30], RAM[29], RAM[28]} <= 32'h20080002;
+    {RAM[35], RAM[34], RAM[33], RAM[32]} <= 32'h0088402a;
+    {RAM[39], RAM[38], RAM[37], RAM[36]} <= 32'h10080003;
+    {RAM[43], RAM[42], RAM[41], RAM[40]} <= 32'h20020001;
+    {RAM[47], RAM[46], RAM[45], RAM[44]} <= 32'h23bd0008;
+    {RAM[51], RAM[50], RAM[49], RAM[48]} <= 32'h03e00008;
+    {RAM[55], RAM[54], RAM[53], RAM[52]} <= 32'h2084ffff;
+    {RAM[59], RAM[58], RAM[57], RAM[56]} <= 32'h0c000004;
+    {RAM[63], RAM[62], RAM[61], RAM[60]} <= 32'h8fbf0000;
+    {RAM[67], RAM[66], RAM[65], RAM[64]} <= 32'h8fa40004;
+    {RAM[71], RAM[70], RAM[69], RAM[68]} <= 32'h23bd0008;
+    {RAM[75], RAM[74], RAM[73], RAM[72]} <= 32'h00821020;
+    {RAM[79], RAM[78], RAM[77], RAM[76]} <= 32'h03e00008;
 
         for (j = 100; j < 128; j = j + 1) 
             RAM[j] <= 0;
