@@ -83,13 +83,17 @@ def Disassembler(InputFile, OutputFile):
 			else:
 				reg2 = line[1:sep].strip()
 				line = line[sep+1:len(line)].strip()
-				if line in labels:
-					imm = labels[line]
+				if cmd in ['mul']:
+					reg3 = line[1:len(line)].strip()
+					result = BIN(IType[cmd], 6) + BIN(reg.index(reg2), 5) + BIN(reg.index(reg3), 5) + BIN(reg.index(reg1),5) + '00000' + '000010'
 				else:
-					imm = int(line, base = 0)
+					if line in labels:
+						imm = labels[line]
+					else:
+						imm = int(line, base = 0)
 			if cmd in ['beq', 'bne']:
 				imm = (imm - PC - 4) >> 2;
-			result = BIN(IType[cmd], 6) + BIN(reg.index(reg2), 5) + BIN(reg.index(reg1), 5) + BIN(imm, 16)
+			if cmd not in ['mul']: result = BIN(IType[cmd], 6) + BIN(reg.index(reg2), 5) + BIN(reg.index(reg1), 5) + BIN(imm, 16)
 			
 		elif cmd in JType:
 			result = BIN(JType[cmd], 6)
