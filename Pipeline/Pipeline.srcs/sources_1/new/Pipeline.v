@@ -59,9 +59,9 @@ module Pipeline(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
     
     wire clk, clk0, clk1, clk2, clk3;
     clkdiv CLK(CLK100MHZ, clk2, clk1, clk0);
-    //MUX2 #(1) selclk3(sel, clk0, clk1, clk3);
-    //MUX2 #(1) selclk(stop, clk3, 0, clk);
-    assign clk = CLK100MHZ;
+    MUX2 #(1) selclk3(sel, clk0, clk1, clk3);
+    MUX2 #(1) selclk(stop, clk3, 0, clk);
+    //assign clk = CLK100MHZ;
     wire [15:0] display;
     Display digit(clk2, {PCF[15:0], display}, SW, DIGIT);
     
