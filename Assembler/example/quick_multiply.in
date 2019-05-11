@@ -13,3 +13,4 @@ srl $t1, $t1, 1
 j while
 
 done:
+add $t3, $0, $0

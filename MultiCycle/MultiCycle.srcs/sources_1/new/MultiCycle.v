@@ -32,19 +32,20 @@ module clkdiv(
     always@(posedge mclk)
          q<=q+1;
     assign clk190=q[16];//0.005s
-    assign clk48=q[24];//0.02s
-    assign clk1_4hz=q[26];//0.33s      
+    assign clk48=q[22];//0.02s
+    assign clk1_4hz=q[24];//0.33s      
 endmodule
 
-module MultiCycle(CLK100MHZ, Reset, sel, addr, SW, DIGIT);
-    input CLK100MHZ, Reset, sel;
+module MultiCycle(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
+    input CLK100MHZ, Reset, sel, stop;
     input [4:0] addr;
     output [7:0] SW;
     output [6:0] DIGIT;
     
-    wire clk, clk0, clk1, clk2;
+    wire clk, clk0, clk1, clk2, clk3;
     clkdiv CLK(CLK100MHZ, clk2, clk1, clk0);
-    //MUX2 #(1) selclk(sel, clk0, clk1, clk);
+    //MUX2 #(1) selclk3(sel, clk0, clk1, clk3);
+    //MUX2 #(1) selclk(stop, clk3, 0, clk);
     assign clk = CLK100MHZ;
     wire [15:0] display;
     Display digit(clk2, {PC[15:0], display}, SW, DIGIT);

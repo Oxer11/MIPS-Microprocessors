@@ -8,5 +8,7 @@ sub $t0, $s2, $s3
 and $t0, $s3, $s1
 or $t0, $s1, $s2
 slt $t0, $s0, $s2
-sw $s0, 100($0)
-lw $t0, 100($0)
+sw $s0, 0($0)
+lw $t0, 0($0)
+nop
+nop

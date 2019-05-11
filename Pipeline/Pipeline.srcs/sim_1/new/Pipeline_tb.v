@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2019/03/05 20:40:19
+// Create Date: 2019/05/11 10:51:26
 // Design Name: 
-// Module Name: OneCycle_tb
+// Module Name: Pipeline_tb
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,12 +20,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module MultiCycle_tb();
+module Pipeline_tb();
     reg clock, reset, sel;
     //wire [31:0] instr, PC;
     wire [7:0] SW;
     wire [6:0] DIGIT;
-    MultiCycle MUT(clock, reset, 1, 0, 1, SW, DIGIT);
+    Pipeline MUT(clock, reset, 1, 0, 1, SW, DIGIT);
     initial 
     begin
         reset = 1;

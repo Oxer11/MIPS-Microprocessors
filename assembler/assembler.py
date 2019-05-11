@@ -31,6 +31,7 @@ def Disassembler(InputFile, OutputFile):
 	PC = 0
 	lines = InputFile.readlines(100000)
 	for line in lines:
+		line = line.strip()
 		sep = line.find(':')
 		if sep != -1: 
 			labels[line[0:sep].strip()] = PC
@@ -47,7 +48,7 @@ def Disassembler(InputFile, OutputFile):
 	PC = 0	
 	for line in lines:
 		result = ''
-		now = line
+		now = line.strip()
 
 		sep = line.find(' ')
 		cmd = line[0:sep].strip()

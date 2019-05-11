@@ -11,4 +11,4 @@ run:
 sub $v0,$v0,$v1
 j main
 end:
-nop
+add $t3, $0, $0
