@@ -1,5 +1,5 @@
 ## Multi-cycle MIPS Processor
-![Pipeline_Datapath](README.asset\MultiCycle_Datapath.jpg)
+![Pipeline_Datapath](README.asset/MultiCycle_Datapath.jpg)
 
 
 
