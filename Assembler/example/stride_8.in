@@ -1,0 +1,60 @@
+addi $v0, $0, 0
+addi $t0, $0, 0
+addi $v1, $0, 512
+for:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, for
+addi $v0, $0, 4
+addi $v1, $0, 516
+tar:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, tar
+addi $v0, $0, 8
+addi $v1, $0, 520
+nod:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, nod
+addi $v0, $0, 12
+addi $v1, $0, 524
+bai:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, bai
+addi $v0, $0, 16
+addi $v1, $0, 528
+gayhu:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, gayhu
+addi $v0, $0, 20
+addi $v1, $0, 532
+gayhao:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, gayhao
+addi $v0, $0, 24
+addi $v1, $0, 536
+bossxie:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, bossxie
+addi $v0, $0, 28
+addi $v1, $0, 540
+erhu:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 32
+bne $v0, $v1, erhu
+nop
+nop
+

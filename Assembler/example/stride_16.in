@@ -1,0 +1,24 @@
+addi $v0, $0, 0
+addi $t0, $0, 0
+addi $v1, $0, 64
+for:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+lw $s0, 64($v0)
+add $t0, $t0, $s0
+lw $s0, 128($v0)
+add $t0, $t0, $s0
+lw $s0, 192($v0)
+add $t0, $t0, $s0
+lw $s0, 256($v0)
+add $t0, $t0, $s0
+lw $s0, 320($v0)
+add $t0, $t0, $s0
+lw $s0, 384($v0)
+add $t0, $t0, $s0
+lw $s0, 448($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 4
+bne $v0, $v1, for
+nop
+nop

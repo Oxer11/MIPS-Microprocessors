@@ -1,0 +1,10 @@
+addi $v0, $0, 0
+addi $t0, $0, 0
+for:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+lw $s0, 256($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 4
+addi $v1, $0, 256
+bne $v0, $v1, for

@@ -1,0 +1,21 @@
+addi $s0, $0, 0
+addi $t0, $0, 0
+addi $v1, $0, 10
+for:
+sw $t0, 0($s0)
+addi $t0, $t0, 1
+addi $s0, $s0, 4
+bne $t0, $v1, for
+addi $s0, $0, 0
+addi $t0, $0, 0
+addi $t1, $0, 0
+addi $s1, $0, 0
+for2:
+lw $t0, 0($s0)
+add $s1, $s1, $t0
+addi $s0, $s0, 4
+addi $t1, $t1, 1
+slt $v0, $v1, $t1
+beq $v0, $0, for2
+nop
+nop

@@ -1,0 +1,34 @@
+addi $v0, $0, 0
+addi $t0, $0, 0
+addi $v1, $0, 512
+for:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 16
+bne $v0, $v1, for
+addi $v0, $0, 4
+addi $v1, $0, 516
+tar:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 16
+bne $v0, $v1, tar
+addi $v0, $0, 8
+addi $v1, $0, 520
+nod:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 16
+bne $v0, $v1, nod
+addi $v0, $0, 12
+addi $v1, $0, 524
+bai:
+lw $s0, 0($v0)
+add $t0, $t0, $s0
+addi $v0, $v0, 16
+bne $v0, $v1, bai
+nop
+nop
+
+
+
