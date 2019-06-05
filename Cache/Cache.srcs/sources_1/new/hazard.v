@@ -49,7 +49,7 @@ module hazard(RsD, RtD, RsE, RtE, WriteRegE, WriteRegM, WriteRegW, RegWriteE, Re
     assign branchstallD = (BNED | BranchD) & 
                     (RegWriteE & (WriteRegE == RsD | WriteRegE == RtD) |
                      MemtoRegM & (WriteRegM == RsD | WriteRegM == RtD));
-    assign stallD = lwstallD | branchstallD | ~DATA_COMPLETE;
+    assign stallD = lwstallD | branchstallD | (~DATA_COMPLETE);
     assign stallF = stallD;
     assign flushE = stallD;
     assign stallE = ~DATA_COMPLETE;

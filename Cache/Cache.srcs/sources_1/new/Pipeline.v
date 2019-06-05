@@ -32,7 +32,7 @@ module clkdiv(
     always@(posedge mclk)
          q <= q + 1;
     assign clk190=q[16];//0.005s
-    assign clk48=q[24];//0.02s
+    assign clk48=q[22];//0.02s
     assign clk1_4hz=q[26];//0.33s      
 endmodule
 
@@ -61,9 +61,10 @@ module Pipeline(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
     clkdiv CLK(CLK100MHZ, clk2, clk1, clk0);
     MUX2 #(1) selclk3(sel, clk0, clk1, clk3);
     MUX2 #(1) selclk(stop, clk3, 0, clk);
-    assign clk = CLK100MHZ;
+    //assign clk = CLK100MHZ;
     wire [15:0] display;
-    Display digit(clk2, {PCF[15:0], display}, SW, DIGIT);
+    wire [31:0] display_data;
+    Display digit(clk2, {PCF[7:0], display_data[15:0], display[7:0]}, SW, DIGIT);
     
     wire RegWriteD, MemtoRegD, MemWriteD, ALUSrcD, RegDstD, BranchD, JumpD, PCSrcD, BNED, BITD, LWD;
     wire RegWriteE, MemtoRegE, MemWriteE, ALUSrcE, RegDstE, LWE;
@@ -126,7 +127,7 @@ module Pipeline(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
     flopr #(5) r3M(clk, Reset, ~stallM, 0, WriteRegE, WriteRegM);
     
     //Memory
-    cache #(64, 2, 2) dmem(clk, Reset, ALUOutM[8:0], MemWriteM, LWM, WriteDataM, DATA_COMPLETE, ReadDataM);
+    cache #(64, 2, 2) dmem(clk, Reset, ALUOutM[8:0], MemWriteM, LWM, WriteDataM, DATA_COMPLETE, ReadDataM, display_data);
     
     flopr #(32) r1W(clk, Reset, ~stallW, 0, ReadDataM, ReadDataW);
     flopr #(32) r2W(clk, Reset, ~stallW, 0, ALUOutM, ALUOutW);
