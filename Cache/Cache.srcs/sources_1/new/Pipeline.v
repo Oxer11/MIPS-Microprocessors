@@ -127,7 +127,7 @@ module Pipeline(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
     flopr #(5) r3M(clk, Reset, ~stallM, 0, WriteRegE, WriteRegM);
     
     //Memory
-    cache #(64, 2, 2) dmem(clk, Reset, ALUOutM[8:0], MemWriteM, LWM, WriteDataM, DATA_COMPLETE, ReadDataM, display_data);
+    cache #(64, 16, 4) dmem(clk, Reset, ALUOutM[8:0], MemWriteM, LWM, WriteDataM, DATA_COMPLETE, ReadDataM, display_data);
     
     flopr #(32) r1W(clk, Reset, ~stallW, 0, ReadDataM, ReadDataW);
     flopr #(32) r2W(clk, Reset, ~stallW, 0, ALUOutM, ALUOutW);

@@ -1,13 +1,13 @@
 addi $v0, $0, 0
 addi $t0, $0, 0
-addi $v1, $0, 512
+addi $v1, $0, 256
 for:
 lw $s0, 0($v0)
 add $t0, $t0, $s0
 addi $v0, $v0, 8
 bne $v0, $v1, for
 addi $v0, $0, 4
-addi $v1, $0, 516
+addi $v1, $0, 260
 tar:
 lw $s0, 0($v0)
 add $t0, $t0, $s0
@@ -15,5 +15,4 @@ addi $v0, $v0, 8
 bne $v0, $v1, tar
 nop
 nop
-
-
+nop

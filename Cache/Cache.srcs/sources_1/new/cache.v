@@ -46,7 +46,8 @@ module cache #(parameter BLOCK_SIZE=64, SET_CNT=2, LINE_CNT=2) (clk, reset, addr
     reg [7:0] hit_cnt, miss_cnt;
     assign display_Data = {16'b0, hit_cnt, miss_cnt};
     
-    wire SET_ID = addr[OFFSET + SET_LEN - 1 : OFFSET];
+    wire [SET_LEN - 1 : 0] SET_ID;
+    assign SET_ID = addr[OFFSET + SET_LEN - 1 : OFFSET];
     
     parameter HIT_PENALTY = 2;
     parameter MISS_PENALTY = 4;
@@ -147,17 +148,6 @@ module cache #(parameter BLOCK_SIZE=64, SET_CNT=2, LINE_CNT=2) (clk, reset, addr
            end
         else
         begin
-        /*
-        for (i = 0; i < SET_CNT; i = i + 1)
-          for (j = 0; j < LINE_CNT; j = j + 1) 
-          begin
-            data[i][j] = data[i][j];
-            valid[i][j] = valid[i][j];
-            tag[i][j] = tag[i][j];
-            dirty[i][j] = dirty[i][j];
-          end
-        rdata = rdata;
-        */
         case (state)
         cacheAccess: if (cnt == HIT_PENALTY && hit)
                         begin
@@ -167,12 +157,12 @@ module cache #(parameter BLOCK_SIZE=64, SET_CNT=2, LINE_CNT=2) (clk, reset, addr
                                 if (hiti[i])
                                 begin
                                   dirty[SET_ID][i] = 1;
-                                  data[SET_ID][i][addr[OFFSET-1]*32 +: 32] = wdata;
+                                  data[SET_ID][i][addr[OFFSET-1:2]*32 +: 32] = wdata;
                                 end
                               end
                             else
                               for (i = 0; i < LINE_CNT; i = i + 1)
-                                if (hiti[i]) rdata = data[SET_ID][i][addr[OFFSET-1]*32 +: 32];
+                                if (hiti[i]) rdata = data[SET_ID][i][addr[OFFSET-1:2]*32 +: 32];
                         end
         memRead: if (cnt == MISS_PENALTY) 
                  begin
@@ -180,8 +170,8 @@ module cache #(parameter BLOCK_SIZE=64, SET_CNT=2, LINE_CNT=2) (clk, reset, addr
                    valid[SET_ID][ran] = 1;
                    dirty[SET_ID][ran] = 0;
                    tag[SET_ID][ran] = addr[8:OFFSET + SET_LEN];
-                   if (wen) begin data[SET_ID][ran][addr[OFFSET-1]*32 +: 32] = wdata; dirty[SET_ID][ran] = 1; end
-                   rdata = data[SET_ID][ran][addr[OFFSET-1]*32 +: 32];
+                   if (wen) begin data[SET_ID][ran][addr[OFFSET-1:2]*32 +: 32] = wdata; dirty[SET_ID][ran] = 1; end
+                   rdata = data[SET_ID][ran][addr[OFFSET-1:2]*32 +: 32];
                  end
         default: begin end
         endcase
