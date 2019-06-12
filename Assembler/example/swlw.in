@@ -15,7 +15,6 @@ lw $t0, 0($s0)
 add $s1, $s1, $t0
 addi $s0, $s0, 4
 addi $t1, $t1, 1
-slt $v0, $v1, $t1
-beq $v0, $0, for2
+bne $t1, $v1, for2
 nop
 nop

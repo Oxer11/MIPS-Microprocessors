@@ -33,9 +33,9 @@
 \usepackage{array} % for better arrays (eg matrices) in maths
 \usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
 \usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
-\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+%%\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
 % These packages are all incorporated in the memoir class to one degree or another...
-
+\usepackage{subfigure}
 %%% HEADERS & FOOTERS
 \usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
 \pagestyle{fancy} % options: empty , plain , fancy
@@ -89,6 +89,12 @@
 \usepackage[CJKbookmarks=true,colorlinks,linkcolor=black]{hyperref}
 \setmainfont{Times New Roman}
 
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{booktabs}
+\usepackage{makecell}
+\usepackage{siunitx}
+\usepackage{stfloats}
 
 
 \definecolor{mygreen}{rgb}{0,0.6,0}  
@@ -202,7 +208,7 @@
 \begin{itemize}
 \item {\bf 随机替换(RAND)}： 随机选择一个块被替换。
 \item {\bf 先进先出(FIFO)}： 选取最先被读入Cache的块进行替换。
-\item {\bf 最不常使用(LFU)}： 该算法将一段时间内被访问次数最少的那个块替换出去。
+\item {\bf 最常使用(MFU)}： 该算法将一段时间内被访问次数最多的那个块替换出去。
 \item {\bf 最近最少使用(LRU)}：把CPU近期最少使用的块替换出去。
 \end{itemize}
 
@@ -238,7 +244,7 @@ reg [8 - SET_LEN - OFFSET:0] tag[SET_CNT-1:0][LINE_CNT-1:0];
 \begin{figure}[h]
 \centering
 \includegraphics[width =\linewidth]{figure/ex.jpg}
-\caption{Cache基本结构示例：块大小$b=64$、组数$S=4$、路数$N=2$}
+\caption{Cache基本结构示例：块大小$b=2$、组数$S=4$、路数$N=2$}
 \end{figure}
 
 \subsection{高速缓存读写}
@@ -322,13 +328,31 @@ WDATA = 0;
 
 \subsection{替换策略实现}
 
-\paragraph{随机替换(RAND)}
+\paragraph{随机替换(RAND)} 随机替换的实现借助了Verilog中自带的随机数，每次随机生成一个需要替换的组号。
+\begin{lstlisting}[language=Verilog]
+ran = {$random} % LINE_CNT;
+\end{lstlisting}
 
-\paragraph{先进先出(FIFO)}
+\paragraph{先进先出(FIFO)} 先进先出策略要求先进入Cache的块先被踢出，所以我们可以对每个组记录当前踢到哪一个块，每次需要替换时就踢出当前块，并使该记录加一。
+\begin{lstlisting}[language=Verilog]
+ran = out[SET_ID];
+out[SET_ID] <= (out[SET_ID] + 1) % LINE_CNT;
+\end{lstlisting}
+初始化时，将out数组全部初始化为0。
 
-\paragraph{最不常使用(LFU)}
+\paragraph{最常使用(MFU)} 最不常用算法每次会踢出使用次数最多的块，我们需要记录每组每个块的使用次数，每次需要替换时，选出使用次数最多的进行替换。在新加入块后，将相应的次数计数清零。
+\begin{lstlisting}[language=Verilog]
+ran = 0;
+for (i = 1; i < LINE_CNT; i = i + 1)
+  if (hit_num[SET_ID][i] > hit_num[SET_ID][ran]) ran = i;
+\end{lstlisting}
 
-\paragraph{最近最少使用(LRU)}
+\paragraph{最近最少使用(LRU)} 这里我们使用的是伪LRU算法，即每次替换时，替换掉上次使用时间最早的块。这需要我们记录每个块上一次使用的时间。一种方法是当一个块被使用时，将其时间戳设为0，其余块的时间戳加一，最后选择出时间戳最大的块进行替换。
+\begin{lstlisting}[language=Verilog]
+ran = 0;
+for (i = 1; i < LINE_CNT; i = i + 1)
+  if (dfn[SET_ID][i] > dfn[SET_ID][ran]) ran = i;
+\end{lstlisting}
 
 \subsection{流水线结构调整}
 \label{sec:pipe}
@@ -341,7 +365,7 @@ WDATA = 0;
 \newpage
 \section{测试样例与结果}
 
-与单周期相同的测试样例均已通过，这里只列举几个关键的和新加入的测试样例。
+与单周期相同的测试样例均已通过，这里只列举几个关键的和新加入的测试样例。以下如未特殊声明，则均使用块大小为$b=4$，组数为$4$，行数为$2$的高速缓存。
 
 \subsection{swlw.in}
 
@@ -363,15 +387,226 @@ WDATA = 0;
 0x30 : add $s1, $s1, $t0    | 02288820
 0x34 : addi $s0, $s0, 4     | 22100004
 0x38 : addi $t1, $t1, 1     | 21290001
-0x3c : slt $v0, $v1, $t1    | 0069102a
-0x40 : beq $v0, $0, for2    | 1002fffa
-0x44 : nop                  | 00000000
-0x48 : nop                  | 
+0x3c : bne $t1, $v1, for2   | 1469fffb
+0x40 : nop                  | 00000000
+0x44 : nop                  | 
 \end{lstlisting} 
+
+该测试样例主要是为了检查Cache的基本存取操作，以及流水线的功能能否正常实现。首先，利用循环将0\~{}9存入cache中，然后再将其取出进行累加，仿真结果如下：
+\includegraphics[width=\linewidth]{figure/swlw1.png}
+
+第一幅图截取的是前半段的某一时刻，分别展示了Fetch阶段的PC值和取出的指令InstrF，和四个寄存器\$s1,\$s0,\$t1,\$t0的值。这里恰好正在存入第8个值，所以\$t0等于8，\$s0等于0x20，而data表示的是cache中的信息。可以注意到，缓存中已经存好了前8个数，因为块大小为4，所以每行存储着4个数字。最下方记录的是hit和miss的次数，因为只取了两个块出来，所以说明只miss了2次，而hit的次数为6，加起来恰好为8。
+
+\noindent
+\includegraphics[width=\linewidth]{figure/swlw2.png}
+
+第二幅图截取的是后半段的结束。注意到，寄存器\$s1的值已累加到0x2d=45，等于0\~{}9的和。Cache中取出的是前三块的内容，前十项都已被赋值为正确的值，第十一项和第十二项是RAM预初始化的值，与本测试样例无关。最终，miss的次数为3，hit的次数为17，总共20次。
+
+\subsection{bubble\_sort.txt}
+
+\begin{lstlisting}
+ 0x0 : add $t0, $0, $0      | 00004020
+ 0x4 : addi $t2, $0, 64     | 200a0040
+ 0x8 : addi $t3, $0, 256    | 200b0100
+ 0xc : For:                 | 
+ 0xc : add $sp, $0, $t0     | 0008e820
+0x10 : lw $t4, 0($sp)       | 8fac0000
+0x14 : add $t5, $0, $sp     | 001d6820
+0x18 : for:                 | 
+0x18 : lw $t6, 0($sp)       | 8fae0000
+0x1c : slt $t7, $t6, $t4    | 01cc782a
+0x20 : bne $t7, $0, ret     | 140f0002
+0x24 : add $t4, $0, $t6     | 000e6020
+0x28 : add $t5, $sp, $0     | 03a06820
+0x2c : ret:                 | 
+0x2c : addi $sp, $sp, 4     | 23bd0004
+0x30 : bne $sp, $t3, for    | 157dfff9
+0x34 : addi $t3, $t3, -4    | 216bfffc
+0x38 : lw $t8, 0($t3)       | 8d780000
+0x3c : sw $t4, 0($t3)       | ad6c0000
+0x40 : sw $t8, 0($t5)       | adb80000
+0x44 : bne $0, $t3, For     | 1560fff1
+\end{lstlisting}
+
+该样例是由罗翔同学构造的冒泡排序代码，此处借来检验Cache的正确性。该段代码会对预存在Dmem中的64个数升序排序，最终将结果写入Memory。我实现了四种不同的替换策略，其仿真结果如下图所示：
+
+\begin{figure}[htbp]
+\centering
+\subfigure[RAND]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleRand.png}
+\end{minipage}%
+}
+
+\subfigure[FIFO]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleFifo.png}
+\end{minipage}%
+}
+
+\subfigure[MFU]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleNfu.png}
+\end{minipage}
+}
+
+\subfigure[LRU]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleLru.png}
+\end{minipage}
+}
+
+\centering
+\caption{冒泡排序仿真结果(128位4组2路)}
+\end{figure}
+
+因为内存中的值太多不好显示，所以这里可以只看Cache里的值。这里使用的是4组2路，每个块128位，四个字的Cache。注意到，四种策略中最终Cache内同一个block内的数据都是升序排序的，可以部分说明算法的正确性。而四种策略中最终留在Cache内的数据不同，也说明四种策略的效率确实有差距。
+
+为了对比Cache的大小对效率的影响，我在这里还使用了另一种大小的Cache(64位4组4路)来执行冒泡排序的代码，结果如下：
+\begin{figure}[h]
+\centering
+\subfigure[RAND]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleRAND4.png}
+\end{minipage}%
+}
+
+\subfigure[FIFO]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleFIFO4.png}
+\end{minipage}%
+}
+
+\subfigure[MFU]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleNFU4.png}
+\end{minipage}
+}
+
+\subfigure[LRU]{
+\begin{minipage}[t]{\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figure/bubbleLRU4.png}
+\end{minipage}
+}
+
+\centering
+\caption{冒泡排序仿真结果(64位4组4路)}
+\end{figure}
+
+
+对于块大小为128位，4组2路的Cache，四种策略的hit和miss次数分别为：
+\begin{itemize}
+\item {\bf RAND:} 0x808次hit，0x118次miss
+\item {\bf FIFO:} 0x7d0次hit，0x150次miss
+\item {\bf MFU:} 0x7b6次hit，0x16a次miss
+\item {\bf LRU:} 0x7bc次hit，0x164次miss
+\end{itemize}
+
+在此处，随机替换策略是最好的，而FIFO是最差的。四种策略的访存总次数均为$0\text{x}920=(65*64)/2+4*64=2336$，正好对应冒泡排序的次数。
+
+而对于块大小为64位，4组4路的Cache，四种策略的hit和miss次数分别为：
+\begin{itemize}
+\item {\bf RAND:} 0x719次hit，0x207次miss
+\item {\bf FIFO:} 0x630次hit，0x2f0次miss
+\item {\bf MFU:} 0x774次hit，0x1ac次miss
+\item {\bf LRU:} 0x636次hit，0x2ea次miss
+\end{itemize}
+
+{\bf 结果分析：} 容易发现，对于相同容量的两个Cache，增大block的大小可以显著增加hit的次数，而增加路数后的性能受替换策略影响较大。若替换策略不合理，则可能会导致之后需要的块被踢出去了。MFU策略受block\_size的变化的影响最小，也说明了MFU策略的合理性。在本测试中，被交换的次数越多就越可能在合适的位置了，因此保留访问次数较少的块也就显得合理了。
+
+
+
 
 
 \newpage
 \section{Cache性能实验}
+
+\subsection{测试代码}
+
+\begin{lstlisting}
+ 0x0 : addi $v0, $0, 512    | 20020200
+ 0x4 : addi $v1, $0, 28     | 2003001c
+ 0x8 : add $s0, $0, $0      | 00008020
+ 0xc : add $t1, $0, $0      | 00004820
+0x10 : addi $s4, $0, 1      | 20140001
+0x14 : Fori:                | 
+0x14 : add $t0, $0, $s0     | 00104020
+0x18 : Forj:                | 
+0x18 : lw $s1, 0($t0)       | 8d110000
+0x1c : add $t1, $t1, $s1    | 01314820
+0x20 : add $t0, $t0, $v1    | 01034020
+0x24 : slt $at, $t0, $v0    | 0102082a
+0x28 : beq $at, $s4, Forj   | 1281fffb
+0x2c : addi $s0, $s0, 4     | 22100004
+0x30 : bne $s0, $v1, Fori   | 1470fff8
+0x34 : nop                  | 00000000
+0x38 : nop                  | 00000000
+0x3c : nop                  | 00000000
+\end{lstlisting}
+
+这段代码是由我编写的，过程是利用二重循环遍历数组中的元素。此处，数组中一共有128个元素，每次遍历的步长由寄存器\$v1的值控制。例如，这里\$v1的值为28，表示内循环一次跨越7个数，而外层循环则在0到6之间循环，等价于先访问下标模7余数为0的元素，再访问余数为1的元素...可通过调节\$v1的值，控制循环的步长。
+
+\subsection{测试结果}
+
+\begin{table}[ht]
+  \centering
+  \fontsize{8}{8}\selectfont
+  \begin{threeparttable}
+    \begin{tabular}{ccccccccccccccccc}
+    \Xhline{2\arrayrulewidth}
+    %\toprule
+    \multirow{2}{*}{步长}&
+    \multicolumn{4}{c}{$128\times 4 \times 4$}&
+    \multicolumn{4}{c}{$128\times 8 \times 2$}&
+    \multicolumn{4}{c}{$128\times 2 \times 8$}&
+    \multicolumn{4}{c}{$64\times 4 \times 8$}\cr
+    \cmidrule(lr){2-5}
+    \cmidrule(lr){6-9}
+    \cmidrule(lr){10-13} 
+    \cmidrule(lr){14-17}
+      & RAND & FIFO & MFU & LRU & RAND & FIFO & MFU & LRU & RAND & FIFO & MFU & LRU & RAND & FIFO & MFU & LRU\cr
+    \midrule
+    $1$ & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x20 & 0x40 & 0x40 & 0x40 & 0x40\cr
+    $2$ & 0x38 & 0x40 & 0x35 & 0x40 & 0x3b & 0x40 & 0x39 & 0x40 & 0x38 & 0x40 & 0x33 & 0x40 & 0x76 & 0x80 & 0x65 & 0x80\cr
+    $3$ & 0x52 & 0x60 & 0x49 & 0x60 & 0x57 & 0x60 & 0x4f & 0x60 & 0x55 & 0x60 & 0x43 & 0x60 & 0x69 & 0x7a & 0x56 & 0x80\cr
+    $4$ & 0x6a & 0x80 & 0x60 & 0x80 & 0x74 & 0x80 & 0x69 & 0x80 & 0x6c & 0x80 & 0x60 & 0x80 & 0x72 & 0x80 & 0x65 & 0x80\cr
+    $5$ & 0x68 & 0x7a & 0x5b & 0x80 & 0x66 & 0x69 & 0x62 & 0x74 & 0x64 & 0x7d & 0x56 & 0x80 & 0x5b & 0x55 & 0x40 & 0x4e\cr
+    $6$ & 0x55 & 0x60 & 0x56 & 0x80 & 0x5c & 0x59 & 0x4e & 0x66 & 0x5c & 0x65 & 0x56 & 0x80 & 0x4e & 0x4a & 0x40 & 0x4e\cr
+    $7$ & 0x53 & 0x4a & 0x53 & 0x5d & 0x55 & 0x4d & 0x51 & 0x57 & 0x59 & 0x4a & 0x45 & 0x63 & 0x4c & 0x4e & 0x40 & 0x4a\cr
+    $8$ & 0x71 & 0x80 & 0x60 & 0x80 & 0x76 & 0x80 & 0x69 & 0x80 & 0x6e & 0x80 & 0x60 & 0x80 & 0x71 & 0x80 & 0x65 & 0x80\cr
+    \Xhline{2\arrayrulewidth}
+    %\bottomrule
+    \end{tabular}
+    \caption{实验结果(miss次数)}
+    \end{threeparttable}
+\end{table}
+
+我对四种大小的Cache分别进行了实验，其中步长的设置为1到8，最终结果如上表所示，其中表中数值代表miss的总次数。
+
+
+\subsection{结果分析}
+
+通过分析表格中的数据，可得到以下结论：
+\begin{enumerate}
+\item 综合所有情况，NFU是表现最好的替换策略，在几乎所有的情况中都给出了最优解。RAND虽不及MFU效果好，但是miss次数也与MFU相差不大，因为其实现代价较小，所以也不失为一种合理的策略。而FIFO与伪LRU算法则时常表现不佳。
+\item 横向比较，当步长较小时，block\_size的设置起到了很大的作用。当步长为1时，128位的块明显效率更高，主要是因为所有的访存都是连续的，所以一次取数越多越好。而四种策略的性能差异不大，则是因为连续读取导致同一块中的元素会被连续访问，被访问后即可被踢出Cache，所以替换策略作用不大。
+\item FIFO策略基本优于伪LRU算法，分析其本质是因为这里每个块被访问的次数总是常数，也就是说越近被访问的块之后被访问的概率越低，而这些块恰好是LRU保存的，所以也就解释了为什么LRU算法在这里的效率如此低下。
+\item 观察步长对性能的影响。当步长为2的次幂时，FIFO与LRU的性能总是最差，可能原因是步长为2的时候会一跳就是一整块，块内的元素很少同时在一次内循环中访问，而所需要的块经常被替换掉，所以导致miss次数非常多。
+\item 因为缓存中的总块数是相同的，所以缓存大小对miss次数的影响并不大。
+\item MFU之所以效果好，是因为每个块被访问的次数总是固定的，所以访问次数越多就说明之后被访问的概率越小。
+\end{enumerate}
+
+综合本节与上一节的实验结果，RAND算法是比较稳定的，很少出现极端的情况，实现代价也比较小，所以是很合适的替换策略。
+
+本实验中未考虑读入block所耗费的代价，实际上，读取不同大小的block所花费的时间必然是不同的。若想考虑该因素，可通过设置时钟延时来实现。
 
 
 \newpage
@@ -382,6 +617,14 @@ WDATA = 0;
 \begin{enumerate}
 \item 对Dmem的初始化如果放在initial中好像会有些问题，我把它调整为reset为1时进行初始化就好了。
 \item 仿真的结果和在板子上的结果可能会差异很大，在同一个时钟沿，仿真时两个信号会同时变化，而在板子上就不是了。可以通过将信号分别调整为上升沿和下降沿触发来解决该问题。
+\item 综合时，可能会报一些权限不足的错误，也无法找到对应的log文件。此时应检查安装目录和项目目录中是否包含空格，如果不包含，可尝试重新综合，第二次说不定就好了。
+\end{enumerate}
+
+\subsection{注意点}
+\begin{enumerate}
+\item 流水线的汇编代码需要在最后加入几句nop，不然可能会出现奇怪的xxx信号
+\item 在实现Cache时，应优先使用参数化的方法，虽然代码写起来要花更多脑筋，但是可以减少大量的代码量(Cache总共150行左右)，且便于复用。
+\item 注意字对齐，访存地址必须是4的倍数。
 \end{enumerate}
 
 \section{申A理由}

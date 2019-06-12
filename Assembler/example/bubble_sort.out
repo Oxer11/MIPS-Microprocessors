@@ -1,0 +1,23 @@
+ 0x0 : add $t0, $0, $0      | 00004020
+ 0x4 : addi $t2, $0, 64     | 200a0040
+ 0x8 : addi $t3, $0, 256    | 200b0100
+ 0xc : For:                 | 
+ 0xc : add $sp, $0, $t0     | 0008e820
+0x10 : lw $t4, 0($sp)       | 8fac0000
+0x14 : add $t5, $0, $sp     | 001d6820
+0x18 : for:                 | 
+0x18 : lw $t6, 0($sp)       | 8fae0000
+0x1c : slt $t7, $t6, $t4    | 01cc782a
+0x20 : bne $t7, $0, ret     | 140f0002
+0x24 : add $t4, $0, $t6     | 000e6020
+0x28 : add $t5, $sp, $0     | 03a06820
+0x2c : ret:                 | 
+0x2c : addi $sp, $sp, 4     | 23bd0004
+0x30 : bne $sp, $t3, for    | 157dfff9
+0x34 : addi $t3, $t3, -4    | 216bfffc
+0x38 : lw $t8, 0($t3)       | 8d780000
+0x3c : sw $t4, 0($t3)       | ad6c0000
+0x40 : sw $t8, 0($t5)       | adb80000
+0x44 : bne $0, $t3, For     | 1560fff1
+0x48 : nop                  | 00000000
+0x4c : nop                  | 00000000

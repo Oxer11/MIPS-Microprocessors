@@ -1,0 +1,18 @@
+addi $v0, $0, 512
+addi $v1, $0, 28
+add $s0, $0, $0
+add $t1, $0, $0
+addi $s4, $0, 1
+Fori:
+add $t0, $0, $s0
+Forj:
+lw $s1, 0($t0)
+add $t1, $t1, $s1
+add $t0, $t0, $v1
+slt $at, $t0, $v0
+beq $at, $s4, Forj
+addi $s0, $s0, 4
+bne $s0, $v1, Fori
+nop
+nop
+nop

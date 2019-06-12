@@ -60,8 +60,8 @@ module Pipeline(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
     wire clk, clk0, clk1, clk2, clk3;
     clkdiv CLK(CLK100MHZ, clk2, clk1, clk0);
     MUX2 #(1) selclk3(sel, clk0, clk1, clk3);
-    MUX2 #(1) selclk(stop, clk3, 0, clk);
-    //assign clk = CLK100MHZ;
+    //MUX2 #(1) selclk(stop, clk3, 0, clk);
+    assign clk = CLK100MHZ;
     wire [15:0] display;
     wire [31:0] display_data;
     Display digit(clk2, {PCF[7:0], display_data[15:0], display[7:0]}, SW, DIGIT);
@@ -127,7 +127,7 @@ module Pipeline(CLK100MHZ, Reset, sel, stop, addr, SW, DIGIT);
     flopr #(5) r3M(clk, Reset, ~stallM, 0, WriteRegE, WriteRegM);
     
     //Memory
-    cache #(64, 16, 4) dmem(clk, Reset, ALUOutM[8:0], MemWriteM, LWM, WriteDataM, DATA_COMPLETE, ReadDataM, display_data);
+    cache #(128, 4, 4) dmem(clk, Reset, ALUOutM[8:0], MemWriteM, LWM, WriteDataM, DATA_COMPLETE, ReadDataM, display_data);
     
     flopr #(32) r1W(clk, Reset, ~stallW, 0, ReadDataM, ReadDataW);
     flopr #(32) r2W(clk, Reset, ~stallW, 0, ALUOutM, ALUOutW);
