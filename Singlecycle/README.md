@@ -1,3 +1,3 @@
 ## Single-cycle MIPS Processor
 
-![datapath](README.asset/datapath.jpg)
+![datapath](README.asset/Datapath.jpg)
