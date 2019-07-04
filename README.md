@@ -57,6 +57,8 @@ gcd.in
 {RAM[43], RAM[42], RAM[41], RAM[40]} <= 32'h00005820;
 ...
 ```
+
+To use the aseembler, the following steps should be executed sequentially:
 1. Clone this repository.
 2. Put your test case in the directory Assembler/example and name it with file extensions '.in'.
 3. Go into the directory Assembler and run the python program.
