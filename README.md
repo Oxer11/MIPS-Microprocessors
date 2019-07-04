@@ -58,7 +58,7 @@ gcd.in
 ...
 ```
 
-To use the aseembler, the following steps should be executed sequentially:
+To use the assembler, the following steps should be executed sequentially:
 1. Clone this repository.
 2. Put your test case in the directory Assembler/example and name it with file extensions '.in'.
 3. Go into the directory Assembler and run the python program.
@@ -70,15 +70,15 @@ Equipped with this powerful tool, you can design your own test cases convenientl
 
 ## Features
 
-- For SingleCycle, we have implemented two instructions, **jal** and **jr**, for recursive function calls. For the purpose of testing our program, we have also constructed a test case **factorial.in**, which has been included in directory **Assembler/example**.
+- For SingleCycle, we have implemented corresponding modules to support two instructions, **jal** and **jr**, for recursive function calls. For the purpose of testing our program, we have also constructed a test case **factorial.in**, which has been included in directory **Assembler/example**.
 - In addition to these features above, we further design a 4-bit multiplier for MultiCycle. With the support of instruction **mul**, **real_factorial.in** become runnable and can be used to test your CPU. 
 - **bubble_sort.in** is designed by [**Xiang Luo**](https://github.com/SunflowerAries) for the examination of the Cache part. Furthermore, experiments have been conducted for the purpose of comparing the performance of different replacement strategies and varisized caches.
 - The MIPS Assembler makes it possible for you to create various test cases, with a handful of instructions. We would appreciate it if you send us a pull request for your imaginative cases.
-- The illustrations of datapath are drawn using [ProcessOn](https://www.processon.com/), a free, powerful, interactive visualization library for diagramming. We have published four figures: [SingleCycle Datapath](https://www.processon.com/special/template/5d1c3314e4b00218c0103346), [MultiCycle Datapath](https://www.processon.com/special/template/5cc8ece0e4b01941c8c30f4d), [MultiCycle StateMachine](https://www.processon.com/view/5ccd8611e4b09eb4ac30bc39), [Pipeline Datapath](https://www.processon.com/special/template/5cd926f0e4b09db644c76aa7), and you can clone them for free and modify them as you like.
+- The illustrations of datapath are drawn via [ProcessOn](https://www.processon.com/), a free, powerful, interactive visualization library for diagramming. We have published four figures: [SingleCycle Datapath](https://www.processon.com/special/template/5d1c3314e4b00218c0103346), [MultiCycle Datapath](https://www.processon.com/special/template/5cc8ece0e4b01941c8c30f4d), [MultiCycle StateMachine](https://www.processon.com/view/5ccd8611e4b09eb4ac30bc39), [Pipeline Datapath](https://www.processon.com/special/template/5cd926f0e4b09db644c76aa7), and you can clone them for free and modify them as you like.
 
 
 ## Acknowledgments
 
-- Thanks to my classmates [**Wenhao Huang**](https://github.com/EZ-hwh), [**Hongqin Li**](https://github.com/lihongqinzhuanyong), [**Xiang Luo**](https://github.com/SunflowerAries), [**Chenhao Wang**](https://github.com/wch19990119), [**Runpeng Xie**](https://github.com/Josep-h) for their enlightening discussion with me!
+- Thanks to my classmates [**Wenhao Huang**](https://github.com/EZ-hwh), [**Hongqin Li**](https://github.com/lihongqinzhuanyong), [**Xiang Luo**](https://github.com/SunflowerAries), [**Chenhao Wang**](https://github.com/wch19990119), [**Runpeng Xie**](https://github.com/Josep-h) (alphabet-order) for their enlightening discussion with me!
 - Thanks to our lecturer, Chen Chen's guidance and suggestions, which inspire us to develop more intriguing features for our own CPU.
 - Thanks to the future users of this repository. Hope this repository can help you design your characteristic CPU.
